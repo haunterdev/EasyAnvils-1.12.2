@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * Forge 1.12.2 {@link AnvilUpdateEvent} handler that reproduces Easy Anvils'
- * config-driven anvil cost and result math — originally implemented by
+ * config-driven anvil cost and result math, originally implemented by
  * {@code ModAnvilMenu.createResult} on 1.20.1.
  *
  * <p>Registered via {@code MinecraftForge.EVENT_BUS.register(new AnvilCostHandler())}.
@@ -25,7 +25,7 @@ public class AnvilCostHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onAnvilUpdate(AnvilUpdateEvent event) {
-        // Another handler already produced a result — don't override.
+        // Another handler already produced a result, don't override.
         if (!event.getOutput().isEmpty()) return;
 
         ItemStack left = event.getLeft();
@@ -73,7 +73,7 @@ public class AnvilCostHandler {
                 }
                 materialCost = repairCount;
             } else {
-                // --- Not a material repair — must be book or same-item combine ---
+                // --- Not a material repair, must be book or same-item combine ---
                 if (!(isBook || (output.getItem() == right.getItem() && output.isItemStackDamageable()))) {
                     event.setCanceled(true);
                     return;
@@ -165,7 +165,7 @@ public class AnvilCostHandler {
                         enchantOperationCost += rarityCostMultiplier * newLevel;
                     }
 
-                    // Multi-stack enchant → no result (no creative — AnvilUpdateEvent has no player).
+                    // Multi-stack enchant → no result (no creative, AnvilUpdateEvent has no player).
                     if (left.getCount() > 1) {
                         event.setCanceled(true);
                         return;

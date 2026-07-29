@@ -23,7 +23,7 @@ public class CompatWarningHandler {
         event.player.sendMessage(new TextComponentString(
                 TextFormatting.GOLD + "[Easy Anvils] " + TextFormatting.YELLOW
                         + "Another anvil mod was detected. \"Items stay in the anvil\" and the "
-                        + "shift-click XP protection are disabled to avoid conflicts — cost, "
+                        + "shift-click XP protection are disabled to avoid conflicts, cost, "
                         + "break, repair and rename features still work."));
     }
 }
