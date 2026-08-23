@@ -34,6 +34,6 @@ name-tag features keep working even alongside a full anvil-replacement mod.
 ## License
 
 Code is [MPL-2.0](LICENSE.md), matching the original. The name tag screen texture is Fuzs'
-original asset and remains © Fuzs, see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
+original asset and remains © Fuzs, see [LICENSE-ASSETS.md](src/main/resources/assets/easyanvils/LICENSE-ASSETS.md).
 
 Original mod by Fuzs.
