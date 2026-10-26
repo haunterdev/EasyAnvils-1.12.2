@@ -158,7 +158,8 @@ public class TileEntityAnvil extends TileEntity implements ISidedInventory {
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack) {
-        return true;
+        // Hoppers only fill the anvil while it keeps its items.
+        return com.xy.easyanvils.config.EasyAnvilsConfig.itemsStayInAnvil;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.xy.easyanvils.mixin;
 
+import com.xy.easyanvils.config.EasyAnvilsConfig;
 import com.xy.easyanvils.mixin.accessor.SlotAccessor;
 import com.xy.easyanvils.tileentity.TileEntityAnvil;
 
@@ -68,8 +69,8 @@ public abstract class MixinContainerRepair extends Container {
         ItemStack left = this.inputSlots.getStackInSlot(0);
         ItemStack right = this.inputSlots.getStackInSlot(1);
         // Only the pure single-item case: combine (right present) already fires onAnvilChange,
-        // and an empty left is a vanilla no-op.
-        if (left.isEmpty() || !right.isEmpty()) {
+        // and an empty left is a vanilla no-op. With customAnvilCosts off, vanilla prices the rename.
+        if (left.isEmpty() || !right.isEmpty() || !EasyAnvilsConfig.customAnvilCosts) {
             // Push the cleared result to the client now. A recompute driven by a tile change (an
             // invalid swap that cancels the event, or a hopper insert) has no trailing
             // detectAndSendChanges like a slot click does, so without this the just-cleared output
@@ -95,12 +96,11 @@ public abstract class MixinContainerRepair extends Container {
         ci.cancel();
     }
 
-    // Close the shift-click XP loophole. Vanilla ContainerRepair.transferStackInSlot moves the
-    // result (index 2) into the inventory and calls onTake WITHOUT consulting the slot's
-    // canTakeStack, so onTake's addExperienceLevel(-maximumCost) just floors the player at level 0 -
-    // i.e. a free enchant/repair you couldn't otherwise afford. Normal clicks are already gated by
-    // canTakeStack; this gates the shift-click path the same way (creative or enough levels).
-    // A 0-cost free rename stays takeable since experienceLevel < 0 is never true.
+    // Second guard on the shift-click path. ContainerRepair.transferStackInSlot moves the result
+    // (index 2) into the inventory and calls onTake without consulting the slot's canTakeStack, so
+    // onTake's addExperienceLevel(-maximumCost) would floor the player at level 0. Container.slotClick
+    // asks canTakeStack before it gets here; a mod's sort or transfer button that calls
+    // transferStackInSlot directly does not. A 0-cost free rename stays takeable.
     @Inject(method = "transferStackInSlot", at = @At("HEAD"), cancellable = true)
     private void easyanvils$gateShiftClickXp(EntityPlayer player, int index, CallbackInfoReturnable<ItemStack> cir) {
         if (index == 2
@@ -109,6 +109,11 @@ public abstract class MixinContainerRepair extends Container {
             cir.setReturnValue(ItemStack.EMPTY);
         }
     }
+
+    // True once this container's inputs are the anvil's tile entity, so close only skips vanilla's
+    // input drop for containers that were really bound (the config can change while one is open).
+    @Unique
+    private boolean easyanvils$bound;
 
     @Unique
     private TileEntityAnvil easyanvils$tile() {
@@ -126,6 +131,18 @@ public abstract class MixinContainerRepair extends Container {
         if (tile == null) {
             return;
         }
+        if (!EasyAnvilsConfig.itemsStayInAnvil) {
+            // Vanilla inputs. Anything stored while the option was on moves into them, so it drops
+            // back to the player on close instead of staying stuck in the tile entity.
+            for (int slot = 0; slot < 2; slot++) {
+                ItemStack stored = tile.removeStackFromSlot(slot);
+                if (!stored.isEmpty()) {
+                    this.inputSlots.setInventorySlotContents(slot, stored);
+                }
+            }
+            return;
+        }
+        this.easyanvils$bound = true;
         this.inputSlots = tile;
         // inventorySlots 0 and 1 are the two anvil input slots (output is index 2).
         ((SlotAccessor) (Object) this.inventorySlots.get(0)).easyanvils$setInventory(tile);
@@ -143,7 +160,7 @@ public abstract class MixinContainerRepair extends Container {
     @Inject(method = "onContainerClosed", at = @At("HEAD"), cancellable = true)
     private void easyanvils$close(EntityPlayer player, CallbackInfo ci) {
         TileEntityAnvil tile = this.easyanvils$tile();
-        if (tile == null) {
+        if (tile == null || !this.easyanvils$bound) {
             return; // not anvil-backed -> let vanilla drop its temporary inputs
         }
         tile.setChangeListener(null);

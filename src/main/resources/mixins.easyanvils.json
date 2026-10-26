@@ -9,6 +9,7 @@
     "MixinBlockAnvil",
     "MixinContainerRepair",
     "MixinContainerRepairResultSlot",
+    "MixinNetHandlerPlayServer",
     "accessor.SlotAccessor"
   ],
   "client": [

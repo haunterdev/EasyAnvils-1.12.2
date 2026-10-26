@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -75,8 +76,29 @@ public class EasyAnvilsMixinPlugin implements IMixinConfigPlugin {
         return true;
     }
 
+    // Vanilla anvil classes another mod changing them can overlap with Easy Anvils.
+    private static final String[] ANVIL_CLASSES = {
+            "net.minecraft.inventory.ContainerRepair",
+            "net.minecraft.inventory.ContainerRepair$2",
+            "net.minecraft.block.BlockAnvil",
+            "net.minecraft.client.gui.GuiRepair"
+    };
+
     @Override
     public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
+        // Name the overlap in the log, so a pack with two anvil mods can see which classes both
+        // change and switch the matching Easy Anvils feature off in its config.
+        List<String> shared = new ArrayList<>();
+        for (String name : ANVIL_CLASSES) {
+            if (otherTargets.contains(name) || otherTargets.contains(name.replace('.', '/'))) {
+                shared.add(name);
+            }
+        }
+        if (!shared.isEmpty()) {
+            LOGGER.warn("Another mod's mixins also change {}. If anvil costs, XP or anvil damage "
+                    + "behave oddly, turn off the overlapping feature in config/easyanvils.cfg "
+                    + "(customAnvilCosts, itemsStayInAnvil, controlAnvilBreaking).", shared);
+        }
     }
 
     @Override

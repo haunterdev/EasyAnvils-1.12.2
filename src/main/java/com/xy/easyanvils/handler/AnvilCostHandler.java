@@ -25,6 +25,8 @@ public class AnvilCostHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onAnvilUpdate(AnvilUpdateEvent event) {
+        // Cost rules switched off: vanilla or another anvil mod computes the result.
+        if (!EasyAnvilsConfig.customAnvilCosts) return;
         // Another handler already produced a result, don't override.
         if (!event.getOutput().isEmpty()) return;
 

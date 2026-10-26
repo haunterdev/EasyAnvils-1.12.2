@@ -17,19 +17,28 @@ Requires 1.12.2, Forge 14.23.5.2860+, and [MixinBooter](https://www.curseforge.c
 - **Formatting codes in names**, use `&` colour/style codes in the anvil and the name tag screen.
 - **Configurable anvil break chance**, with optional risk-free renaming.
 - **Combine incompatible enchantments** *(off by default)*, optionally allow normally mutually-exclusive enchantments on one item (Sharpness + Smite + Bane of Arthropods, or every Protection on one piece of armor).
+- **Longer item names**, up to 50 characters instead of 35.
 
 Everything is configurable in `config/easyanvils.cfg`, with an in-game config screen from the mod list.
 
 ## Mod Compatibility
 
-Built for maximum compatibility. Every gameplay tweak (costs, break chance, repairs, name
-tags) runs through Forge events, `AnvilUpdateEvent`, `AnvilRepairEvent`, and interaction
-events, so no anvil class is replaced.
+Every gameplay tweak (costs, break chance, repairs, name tags) runs through Forge events,
+`AnvilUpdateEvent`, `AnvilRepairEvent`, and interaction events, so no anvil class is replaced.
 
-The only two vanilla-touching mixins exist for the "items stay in the anvil" feature (giving
-the anvil a block entity and backing the container's input slots with it). Both disable
-themselves automatically when another mod overhauls the anvil container, so the cost and
-name-tag features keep working even alongside a full anvil-replacement mod.
+Each feature that changes vanilla anvil behaviour has its own switch, so it can be handed
+back to vanilla when another mod already does the same job:
+
+| Option | Section | Turns off |
+|---|---|---|
+| `customAnvilCosts` | costs | all cost changes: repair and rename prices, the level limit, free renames, and taking 0-level results |
+| `controlAnvilBreaking` | misc | the break chance and risk-free renaming, so vanilla or another mod decides when the anvil gets damaged |
+| `itemsStayInAnvil` | misc | input items staying inside the anvil; items left in an anvil come back out the next time it is opened |
+| `longerItemNames` | misc | the 50-character name limit |
+
+The "items stay in the anvil" mixins disable themselves automatically when another mod
+overhauls the anvil container. When another mod's mixins target the same vanilla anvil
+classes, the log names them and points at these switches.
 
 ## License
 

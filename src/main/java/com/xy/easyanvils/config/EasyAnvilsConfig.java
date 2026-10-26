@@ -21,6 +21,7 @@ public class EasyAnvilsConfig {
     public static boolean penaltyFreeRenamesAndRepairs = true;
 
     // ---- costs ----
+    public static boolean customAnvilCosts = true;
     public static boolean enableTooExpensiveLimit = false;
     public static int tooExpensiveLimit = 40;
     public static boolean enableFreeRenames = true;
@@ -34,6 +35,9 @@ public class EasyAnvilsConfig {
     public static int repairWithOtherItemCost = 2;
 
     // ---- miscellaneous ----
+    public static boolean itemsStayInAnvil = true;
+    public static boolean controlAnvilBreaking = true;
+    public static boolean longerItemNames = true;
     public static boolean anvilRepairing = true;
     public static boolean editNameTagsNoAnvil = true;
     public static boolean anvilsCanBreak = true;
@@ -91,6 +95,10 @@ public class EasyAnvilsConfig {
                 "penaltyFreeRenamesAndRepairs", CAT_PENALTY, true,
                 "Prevents the prior work penalty from increasing when the item has only been renamed or repaired.");
 
+        customAnvilCosts = config.getBoolean(
+                "customAnvilCosts", CAT_COSTS, true,
+                "Master toggle for Easy Anvils' anvil cost and result rules: every option in this category and in prior_work_penalty, plus free renames that cost 0 levels.\n"
+                        + "When disabled, anvil results and costs come from vanilla or from another anvil mod, and the 'Too Expensive!' label goes back to vanilla's 40 levels.");
         enableTooExpensiveLimit = config.getBoolean(
                 "enableTooExpensiveLimit", CAT_COSTS, false,
                 "Master toggle for the 'Too Expensive!' cost cap. When disabled, anvil operations are never blocked for costing too much (no upper level limit).\n"
@@ -128,6 +136,18 @@ public class EasyAnvilsConfig {
                 "repairWithOtherItemCost", CAT_COSTS, 2, 0, Integer.MAX_VALUE,
                 "The additional cost in levels for combining an item with another item of the same kind when the first item is not fully repaired.");
 
+        itemsStayInAnvil = config.getBoolean(
+                "itemsStayInAnvil", CAT_MISC, true,
+                "Items placed in an anvil stay there when the screen is closed, show on top of the anvil, and can be inserted by hoppers.\n"
+                        + "When disabled, the anvil works like vanilla: inputs drop back to the player on close and hoppers cannot insert. "
+                        + "Items already stored in an anvil are handed back into its slots the next time it is opened.");
+        controlAnvilBreaking = config.getBoolean(
+                "controlAnvilBreaking", CAT_MISC, true,
+                "Easy Anvils sets the chance an anvil is damaged by use ('anvilsCanBreak', 'anvilBreakChance', 'riskFreeAnvilRenaming').\n"
+                        + "When disabled, those three options are ignored and vanilla or another mod decides anvil damage.");
+        longerItemNames = config.getBoolean(
+                "longerItemNames", CAT_MISC, true,
+                "Item names typed in the anvil can be up to 50 characters long instead of vanilla's 35. Needs Easy Anvils on both the client and the server.");
         anvilRepairing = config.getBoolean(
                 "anvilRepairing", CAT_MISC, true,
                 "Allow using iron blocks to repair an anvil by one damage stage. Can be automated using dispensers.");

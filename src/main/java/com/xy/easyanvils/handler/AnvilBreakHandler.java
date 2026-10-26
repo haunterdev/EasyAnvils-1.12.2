@@ -9,6 +9,10 @@ public class AnvilBreakHandler {
 
     @SubscribeEvent
     public void onAnvilRepair(AnvilRepairEvent event) {
+        // Breaking control switched off: leave the chance vanilla or another mod set.
+        if (!EasyAnvilsConfig.controlAnvilBreaking) {
+            return;
+        }
         if (!EasyAnvilsConfig.anvilsCanBreak) {
             event.setBreakChance(0.0F);
             return;

@@ -1,32 +1,43 @@
 package com.xy.easyanvils.mixin;
 
+import com.xy.easyanvils.config.EasyAnvilsConfig;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ContainerRepair;
+import net.minecraft.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
-import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Relaxes the anvil result slot's pickup gate so a <em>free</em> (0-level) rename can still be
- * taken.
+ * Lets a <em>free</em> (0-level) anvil result be taken while every other result still needs its
+ * levels.
  *
- * <p>Vanilla's output slot ({@code ContainerRepair$2}) requires {@code maximumCost > 0} in
- * {@code canTakeStack}, which means a result that costs 0 levels can never be removed. The
- * original Easy Anvils mod overrides this (its {@code m_6560_} uses {@code cost >= 0}), which is
- * what makes free renames usable. We reproduce that by widening the {@code > 0} comparison to
- * {@code >= 0} via {@link Constant.Condition#GREATER_THAN_ZERO}.
+ * <p>Vanilla's output slot ({@code ContainerRepair$2}) answers
+ * {@code (creative || level >= cost) && cost > 0 && hasStack}, so a result that costs 0 levels can
+ * never be removed. The original Easy Anvils mod overrides this (its {@code m_6560_} uses
+ * {@code cost >= 0}), which is what makes free renames usable. This writes that rule out in full.
  *
- * <p>Targets the anonymous result slot by its synthetic name; this is vanilla's own class and the
- * index is stable across environments. Uses the MCP method name to match the RFG workspace.
+ * <p>Up to 1.1.0 this was a {@code @ModifyConstant(intValue = 0, expandZeroConditions =
+ * GREATER_THAN_ZERO)} returning -1. Mixin's expanded zero match also takes the method's
+ * {@code iconst_0}, which is the {@code return false}, so every refusal returned -1 (true) and a
+ * level 0 player could take any result for free (GitHub issue #1, the green cost at level 0).
+ *
+ * <p>The cost is read from the player's open anvil, the container this slot belongs to whenever a
+ * click or the screen asks. With {@code customAnvilCosts} off the vanilla method runs untouched.
  */
 @Mixin(targets = "net.minecraft.inventory.ContainerRepair$2")
 public abstract class MixinContainerRepairResultSlot {
 
-    @ModifyConstant(
-            method = "canTakeStack",
-            constant = @Constant(intValue = 0, expandZeroConditions = Constant.Condition.GREATER_THAN_ZERO))
-    private int easyanvils$allowFreePickup(int original) {
-        // expandZeroConditions rewrites "maximumCost > 0" into "maximumCost > <return>".
-        // Returning -1 makes it "maximumCost > -1", i.e. "maximumCost >= 0", so a 0-cost free
-        // rename result becomes takeable (vanilla blocks it; the original mod's m_6560_ allows it).
-        return -1;
+    @Inject(method = "canTakeStack", at = @At("HEAD"), cancellable = true)
+    private void easyanvils$canTakeStack(EntityPlayer player, CallbackInfoReturnable<Boolean> cir) {
+        if (!EasyAnvilsConfig.customAnvilCosts || !(player.openContainer instanceof ContainerRepair)) {
+            return;
+        }
+        int cost = ((ContainerRepair) player.openContainer).maximumCost;
+        cir.setReturnValue((player.capabilities.isCreativeMode || player.experienceLevel >= cost)
+                && cost >= 0
+                && ((Slot) (Object) this).getHasStack());
     }
 }

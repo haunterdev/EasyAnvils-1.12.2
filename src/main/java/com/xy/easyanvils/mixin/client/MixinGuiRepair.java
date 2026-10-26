@@ -28,13 +28,16 @@ public abstract class MixinGuiRepair {
 
     @Inject(method = "initGui", at = @At("TAIL"))
     private void easyanvils$extendNameLength(CallbackInfo ci) {
-        if (this.nameField != null) {
+        if (this.nameField != null && EasyAnvilsConfig.longerItemNames) {
             this.nameField.setMaxStringLength(50);
         }
     }
 
     @ModifyConstant(method = "drawGuiContainerForegroundLayer", constant = @Constant(intValue = 40))
     private int easyanvils$tooExpensiveLimit(int vanilla) {
+        if (!EasyAnvilsConfig.customAnvilCosts) {
+            return vanilla;
+        }
         return EasyAnvilsConfig.enableTooExpensiveLimit
                 ? EasyAnvilsConfig.tooExpensiveLimit
                 : Integer.MAX_VALUE;
