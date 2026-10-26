@@ -31,7 +31,7 @@ back to vanilla when another mod already does the same job:
 
 | Option | Section | Turns off |
 |---|---|---|
-| `customAnvilCosts` | costs | all cost changes: repair and rename prices, the level limit, free renames, and taking 0-level results |
+| `customAnvilCosts` | costs | all cost changes: repair and rename prices, the level limit, free renames, taking 0-level results, and the level check on shift-clicked results |
 | `controlAnvilBreaking` | misc | the break chance and risk-free renaming, so vanilla or another mod decides when the anvil gets damaged |
 | `itemsStayInAnvil` | misc | input items staying inside the anvil; items left in an anvil come back out the next time it is opened |
 | `longerItemNames` | misc | the 50-character name limit |

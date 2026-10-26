@@ -62,8 +62,13 @@ public abstract class MixinContainerRepair extends Container {
     //    single-item case and applying the result exactly like ForgeHooks.onAnvilChange, so the
     //    same config-driven cost math (free renames -> cost 0) applies. Cancelling vanilla then
     //    prevents its flat rename charge. Other mods' AnvilUpdateEvent handlers get a say too.
+    //
+    // With customAnvilCosts off on an anvil not bound to its tile entity, vanilla runs untouched.
     @Inject(method = "updateRepairOutput", at = @At("HEAD"), cancellable = true)
     private void easyanvils$clearStaleResult(CallbackInfo ci) {
+        if (!EasyAnvilsConfig.customAnvilCosts && !this.easyanvils$bound) {
+            return;
+        }
         this.outputSlot.setInventorySlotContents(0, ItemStack.EMPTY);
 
         ItemStack left = this.inputSlots.getStackInSlot(0);
@@ -100,10 +105,12 @@ public abstract class MixinContainerRepair extends Container {
     // (index 2) into the inventory and calls onTake without consulting the slot's canTakeStack, so
     // onTake's addExperienceLevel(-maximumCost) would floor the player at level 0. Container.slotClick
     // asks canTakeStack before it gets here; a mod's sort or transfer button that calls
-    // transferStackInSlot directly does not. A 0-cost free rename stays takeable.
+    // transferStackInSlot directly does not. A 0-cost free rename stays takeable. Part of
+    // customAnvilCosts, so turning that off leaves vanilla's shift-click as it is.
     @Inject(method = "transferStackInSlot", at = @At("HEAD"), cancellable = true)
     private void easyanvils$gateShiftClickXp(EntityPlayer player, int index, CallbackInfoReturnable<ItemStack> cir) {
         if (index == 2
+                && EasyAnvilsConfig.customAnvilCosts
                 && !player.capabilities.isCreativeMode
                 && player.experienceLevel < this.maximumCost) {
             cir.setReturnValue(ItemStack.EMPTY);

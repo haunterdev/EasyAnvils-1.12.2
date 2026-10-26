@@ -1,5 +1,6 @@
 package com.xy.easyanvils.mixin;
 
+import com.xy.easyanvils.config.EasyAnvilsConfig;
 import com.xy.easyanvils.tileentity.TileEntityAnvil;
 
 import net.minecraft.block.BlockFalling;
@@ -48,9 +49,11 @@ public abstract class MixinBlockAnvil extends BlockFalling {
         super.breakBlock(worldIn, pos, state);
     }
 
+    // The tile entity stays with itemsStayInAnvil off, so items stored while it was on are handed
+    // back rather than lost, but the anvil reads to comparators like vanilla again.
     @Override
     public boolean hasComparatorInputOverride(IBlockState state) {
-        return true;
+        return EasyAnvilsConfig.itemsStayInAnvil;
     }
 
     @Override

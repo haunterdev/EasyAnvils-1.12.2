@@ -54,6 +54,8 @@ public class EasyAnvilsConfig {
     private static final String CAT_MISC = "miscellaneous";
     private static final String CAT_CLIENT = "client";
 
+    private static final String CONFIG_VERSION = "2";
+
     private static Configuration config;
 
     public static Configuration getConfig() {
@@ -61,9 +63,19 @@ public class EasyAnvilsConfig {
     }
 
     public static void init(File configFile) {
-        config = new Configuration(configFile);
+        config = new Configuration(configFile, CONFIG_VERSION);
         config.load();
+        boolean unversioned = config.getLoadedConfigVersion() == null;
+        // 1.0.0 shipped the original mod's 0.05 break chance and 1.1.0 moved the default to vanilla's
+        // 0.12, but a file written by 1.0.0 keeps 0.05, so anvils there crack under half as often.
+        if (unversioned && config.hasKey(CAT_MISC, "anvilBreakChance")
+                && config.get(CAT_MISC, "anvilBreakChance", 0.12).getDouble() == 0.05) {
+            config.get(CAT_MISC, "anvilBreakChance", 0.12).set(0.12);
+        }
         syncConfig();
+        if (unversioned) {
+            config.save();
+        }
     }
 
     /** Re-reads every value from the config object. Called on load and after in-game config edits. */
@@ -97,7 +109,7 @@ public class EasyAnvilsConfig {
 
         customAnvilCosts = config.getBoolean(
                 "customAnvilCosts", CAT_COSTS, true,
-                "Master toggle for Easy Anvils' anvil cost and result rules: every option in this category and in prior_work_penalty, plus free renames that cost 0 levels.\n"
+                "Master toggle for Easy Anvils' anvil cost and result rules: every option in this category and in prior_work_penalty, free renames that cost 0 levels, and the level check on shift-clicked results.\n"
                         + "When disabled, anvil results and costs come from vanilla or from another anvil mod, and the 'Too Expensive!' label goes back to vanilla's 40 levels.");
         enableTooExpensiveLimit = config.getBoolean(
                 "enableTooExpensiveLimit", CAT_COSTS, false,
